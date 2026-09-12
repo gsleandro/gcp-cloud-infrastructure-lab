@@ -106,12 +106,11 @@ The project includes:
 
 ## Evidence
 
-Implementation evidence is stored in the `evidence/` directory.
+Implementation evidence is stored in the `evidence/` directory and shown below in ascending filename order.
+
+> Evidence 01 was not captured during the lab, so the published sequence starts at 02.
 
 ### Core setup
-
-#### Evidência 01 — Billing / Free Trial
-![Billing / Free Trial](evidence/01-free-trial-billing.png)
 
 #### Evidência 02 — Projeto criado
 ![Projeto criado](evidence/02-project-created.png)
