@@ -6,13 +6,19 @@ The lab uses a dedicated Service Account for VM backup operations:
 
 `cloud-lab-backup@gcp-cloud-infrastructure-lab.iam.gserviceaccount.com`
 
-The purpose is to avoid using a personal identity for workload access to Cloud Storage.
+The goal is to avoid using personal credentials for workload access to Cloud Storage.
+
+## Workload identity
+
+The Service Account is attached directly to the Compute Engine VM. The VM uses short-lived credentials exposed through the Google Cloud metadata service, so no Service Account JSON key is required.
+
+This is preferable to storing long-lived credentials on disk or in the repository.
 
 ## Least privilege
 
-The first permission model used `roles/storage.objectCreator`. During validation, the `gcloud storage` workflow required additional object permissions for the test scenario, so the lab was adjusted to `roles/storage.objectUser` at the bucket level.
+The first permission model used `roles/storage.objectCreator`. During validation, the `gcloud storage` workflow required additional object permissions for the lab's upload and verification steps, so the bucket-level role was adjusted to `roles/storage.objectUser`.
 
-For production, permissions should be reviewed against the exact application behavior and reduced as much as operationally possible.
+For production workloads, IAM should be reviewed against the exact application behavior and reduced to the smallest set of permissions that still satisfies the operational requirement.
 
 ## Firewall
 
@@ -23,16 +29,31 @@ Lab rules:
 
 HTTP exposure is intentional so the Nginx test page can be validated from the internet.
 
-SSH exposure is acceptable only for this temporary lab. Production options include:
+SSH exposure is temporary and intended only for this learning environment. Production improvements include:
 
-- restricting source CIDRs;
-- Identity-Aware Proxy (IAP);
-- OS Login;
-- bastion hosts;
-- private administrative access.
+- restricting SSH source CIDRs;
+- using Identity-Aware Proxy (IAP);
+- enabling OS Login;
+- using private administrative access;
+- removing public SSH exposure when it is no longer required.
 
-## Credentials
+## Public IP and HTTP
 
-No Service Account key file is required for this project. The VM uses its attached Service Account identity.
+The VM uses a public IPv4 address and serves the lab page over plain HTTP. This is acceptable for a temporary demonstration page with no sensitive data.
 
-Secrets, credentials, private keys and tokens must never be committed to this repository.
+A production web workload should normally use HTTPS, managed certificates and an appropriate load-balancing or reverse-proxy architecture.
+
+## Credentials and repository hygiene
+
+No Service Account key file is required for this project.
+
+Never commit:
+
+- private keys;
+- OAuth tokens;
+- API keys;
+- Service Account JSON keys;
+- passwords;
+- billing or payment data.
+
+Screenshots should also be reviewed before publication to avoid unnecessary personal information.
