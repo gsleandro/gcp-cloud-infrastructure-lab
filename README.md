@@ -106,56 +106,76 @@ The project includes:
 
 ## Evidence
 
-Implementation evidence will be stored in the `evidence/` directory. The README is already prepared to reference each screenshot after upload.
+Implementation evidence is stored in the `evidence/` directory.
 
 ### Core setup
 
-![Free trial billing](evidence/01-free-trial-billing.png)
+#### Evidência 01 — Billing / Free Trial
+![Billing / Free Trial](evidence/01-free-trial-billing.png)
 
-![Project created](evidence/02-project-created.png)
+#### Evidência 02 — Projeto criado
+![Projeto criado](evidence/02-project-created.png)
 
+#### Evidência 03 — Budget alert
 ![Budget alert](evidence/03-budget-alert.png)
 
+#### Evidência 04 — Cloud Shell project
 ![Cloud Shell project](evidence/04-cloud-shell-project.png)
 
+#### Evidência 05 — Gcloud region and zone
 ![Gcloud region and zone](evidence/05-gcloud-region-zone.png)
 
 ### Network and compute
 
-![VPC and subnet](evidence/06-vpc-subnet-created.png)
+#### Evidência 06 — VPC and subnet created
+![VPC and subnet created](evidence/06-vpc-subnet-created.png)
 
-![Firewall rules](evidence/07-firewall-rules-created.png)
+#### Evidência 07 — Firewall rules created
+![Firewall rules created](evidence/07-firewall-rules-created.png)
 
+#### Evidência 08 — VM running
 ![VM running](evidence/08-vm-running.png)
 
-![SSH Ubuntu access](evidence/09-vm-ssh-ubuntu.png)
+#### Evidência 09 — VM SSH Ubuntu
+![VM SSH Ubuntu](evidence/09-vm-ssh-ubuntu.png)
 
 ### Web server
 
+#### Evidência 10 — Nginx running
 ![Nginx running](evidence/10-nginx-running.png)
 
+#### Evidência 11 — Nginx web page
 ![Nginx web page](evidence/11-nginx-web-page.png)
 
+#### Evidência 12 — Public HTTP test
 ![Public HTTP test](evidence/12-public-http-test.png)
 
 ### Backup and IAM
 
+#### Evidência 13 — Backup file created
 ![Backup file created](evidence/13-backup-file-created.png)
 
-![Storage bucket](evidence/14-storage-bucket-created.png)
+#### Evidência 14 — Storage bucket created
+![Storage bucket created](evidence/14-storage-bucket-created.png)
 
-![Service Account](evidence/15-service-account-created.png)
+#### Evidência 15 — Service Account created
+![Service Account created](evidence/15-service-account-created.png)
 
+#### Evidência 16 — VM Service Account
 ![VM Service Account](evidence/16-vm-service-account.png)
 
-![Backup uploaded](evidence/17-backup-uploaded-to-storage.png)
+#### Evidência 17 — Backup uploaded to Cloud Storage
+![Backup uploaded to Cloud Storage](evidence/17-backup-uploaded-to-storage.png)
 
 ### Monitoring and logging
 
+#### Evidência 18 — Monitoring dashboard
 ![Monitoring dashboard](evidence/18-monitoring-dashboard.png)
 
+#### Evidência 19 — CPU alert policy
 ![CPU alert policy](evidence/19-cpu-alert-policy.png)
 
+#### Evidência 20 — Cloud Logging
 ![Cloud Logging](evidence/20-cloud-logging.png)
 
 ## Repository structure
