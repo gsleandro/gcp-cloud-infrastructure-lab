@@ -1,51 +1,61 @@
 # GCP Cloud Infrastructure Lab
 
-Hands-on Google Cloud infrastructure lab focused on **Cloud Infrastructure, Linux, Networking, IAM, Storage, Monitoring, Logging and backup operations**.
+Hands-on Google Cloud infrastructure project focused on **networking, Compute Engine, Linux, IAM, Cloud Storage, monitoring, logging and backup operations**.
 
-This project simulates a small corporate environment running on Google Cloud Platform, with a custom network, Linux web server, controlled access, backup to Cloud Storage and basic observability.
+The lab simulates a small cloud environment deployed from scratch with a custom VPC, an Ubuntu VM running Nginx, controlled network access, a dedicated workload identity, backups to Cloud Storage and basic observability.
 
-## Project goals
+## Project status
 
-- Build a custom VPC and subnet
-- Deploy a Linux VM on Compute Engine
-- Publish a web service with Nginx
+**V1 complete.** The infrastructure was deployed, tested and documented with implementation evidence.
+
+## Objectives
+
+- Build a custom VPC and subnet instead of using the default network
+- Deploy an Ubuntu VM on Compute Engine
+- Publish an Nginx web service over HTTP
 - Configure firewall rules for HTTP and SSH
-- Use a dedicated Service Account for backup operations
-- Store backups in Cloud Storage
-- Apply IAM with least-privilege principles
-- Create monitoring dashboards and alerting
-- Validate logs with Cloud Logging
-- Document implementation evidence and troubleshooting
+- Use a dedicated Service Account for workload access
+- Store Nginx backups in Cloud Storage
+- Apply bucket-level IAM permissions
+- Build a Cloud Monitoring dashboard and CPU alert
+- Validate infrastructure logs in Cloud Logging
+- Document troubleshooting and implementation evidence
 
 ## Architecture
 
 ```text
-                         INTERNET
-                            |
-                            | HTTP :80
-                            v
-                  +--------------------+
-                  |   Compute Engine   |
-                  |   cloud-lab-vm     |
-                  |     e2-micro       |
-                  |  Ubuntu 24.04 LTS  |
-                  |       Nginx        |
-                  +---------+----------+
-                            |
-              +-------------+-------------+
-              |             |             |
-              v             v             v
-       Custom VPC      Cloud Logging   Cloud Monitoring
-       10.10.10.0/24                       + Alerting
-              |
-              v
-      Dedicated Service Account
-        cloud-lab-backup
-              |
-              v
-        Cloud Storage
-          Backups
+                              INTERNET
+                                 |
+                           HTTP TCP/80
+                                 |
+                                 v
+                    +-------------------------+
+                    |     Compute Engine      |
+                    |      cloud-lab-vm       |
+                    |        e2-micro         |
+                    |    Ubuntu 24.04 LTS     |
+                    |         Nginx           |
+                    +-----------+-------------+
+                                |
+                     cloud-lab-vpc / subnet
+                        10.10.10.0/24
+                                |
+                +---------------+----------------+
+                |                                |
+                v                                v
+       Cloud Monitoring                    Cloud Logging
+          + Alerting
+
+VM attached identity:
+cloud-lab-backup Service Account
+                |
+                | IAM-authorized API access
+                v
+          Cloud Storage bucket
+              backups/
 ```
+
+> Cloud Storage is accessed through Google Cloud APIs using the VM's attached Service Account. It is not mounted as part of the VPC.
 
 More details: [`docs/architecture.md`](docs/architecture.md)
 
@@ -63,46 +73,55 @@ More details: [`docs/architecture.md`](docs/architecture.md)
 | Machine type | `e2-micro` |
 | OS | Ubuntu 24.04 LTS |
 | Web server | Nginx |
-| Storage class | Standard |
+| Storage | Cloud Storage Standard |
 | Service Account | `cloud-lab-backup` |
+| CPU alert | Threshold above 80% for 5 minutes |
 
-## Security
+## Security decisions
 
-The environment uses a dedicated Service Account for backup operations instead of relying on a personal user identity.
+The VM uses a dedicated Service Account instead of personal user credentials for backup access to Cloud Storage.
 
-The backup workflow initially used `roles/storage.objectCreator`. During testing, the CLI required additional object permissions for the operational flow, so the role was adjusted to `roles/storage.objectUser` for the lab.
+The initial bucket role was `roles/storage.objectCreator`. During validation, the CLI workflow required additional object permissions, so the lab was adjusted to bucket-level `roles/storage.objectUser`. The troubleshooting process is documented in [`docs/troubleshooting.md`](docs/troubleshooting.md).
 
-This troubleshooting step is documented in [`docs/troubleshooting.md`](docs/troubleshooting.md).
-
-> This is a learning environment. SSH is exposed for lab access and should be restricted or replaced with a stronger administrative access pattern such as IAP/OS Login in a production environment.
+> **Lab-only exposure:** TCP/22 is open from `0.0.0.0/0` for temporary SSH access. In production, SSH should be restricted by source CIDR or replaced with controls such as IAP and OS Login.
 
 ## Backup workflow
 
 ```text
-Nginx configuration + web content
-              |
-              v
-        tar.gz archive
-              |
-              v
-    Dedicated Service Account
-              |
-              v
-         Cloud Storage
+/etc/nginx + /var/www/html
+            |
+            v
+     compressed tar.gz
+            |
+            v
+ gcloud storage upload
+            |
+            v
+ Cloud Storage /backups
 ```
 
-The reusable script is available at [`scripts/backup.sh`](scripts/backup.sh).
+A reusable backup script is available at [`scripts/backup.sh`](scripts/backup.sh).
 
 ## Observability
 
-The project includes:
+The lab includes:
 
-- CPU monitoring
-- Network monitoring
-- Disk metrics
-- VM uptime
-- High CPU alert policy
+- VM CPU utilization
+- Network received bytes
+- Network sent bytes
+- Disk activity
+- VM uptime monitoring
+- CPU alert policy
 - Cloud Logging validation
+
+## Troubleshooting highlights
+
+Two useful operational issues were documented during the deployment:
+
+1. **Cloud Storage HTTP 403** caused by insufficient object permissions on the Service Account.
+2. **Backup file unavailable after restart** after initially using `/tmp`, leading to migration to a persistent path under `~/backups`.
+
+See [`docs/troubleshooting.md`](docs/troubleshooting.md) for the full analysis.
 
 ## Evidence
 
@@ -112,69 +131,69 @@ Implementation evidence is stored in the `evidence/` directory and shown below i
 
 ### Core setup
 
-#### Evidência 02 — Projeto criado
-![Projeto criado](evidence/02-project-created.png)
+#### Evidence 02 — Project created
+![Project created](evidence/02-project-created.png)
 
-#### Evidência 03 — Budget alert
+#### Evidence 03 — Budget alert
 ![Budget alert](evidence/03-budget-alert.png)
 
-#### Evidência 04 — Cloud Shell project
-![Cloud Shell project](evidence/04-cloud-shell-project.png)
+#### Evidence 04 — Cloud Shell project validation
+![Cloud Shell project validation](evidence/04-cloud-shell-project.png)
 
-#### Evidência 05 — Gcloud region and zone
-![Gcloud region and zone](evidence/05-gcloud-region-zone.png)
+#### Evidence 05 — Region and zone configuration
+![Region and zone configuration](evidence/05-gcloud-region-zone.png)
 
 ### Network and compute
 
-#### Evidência 06 — VPC and subnet created
+#### Evidence 06 — VPC and subnet created
 ![VPC and subnet created](evidence/06-vpc-subnet-created.png)
 
-#### Evidência 07 — Firewall rules created
+#### Evidence 07 — Firewall rules created
 ![Firewall rules created](evidence/07-firewall-rules-created.png)
 
-#### Evidência 08 — VM running
+#### Evidence 08 — VM running
 ![VM running](evidence/08-vm-running.png)
 
-#### Evidência 09 — VM SSH Ubuntu
-![VM SSH Ubuntu](evidence/09-vm-ssh-ubuntu.png)
+#### Evidence 09 — SSH access to Ubuntu VM
+![SSH access to Ubuntu VM](evidence/09-vm-ssh-ubuntu.png)
 
 ### Web server
 
-#### Evidência 10 — Nginx running
+#### Evidence 10 — Nginx running
 ![Nginx running](evidence/10-nginx-running.png)
 
-#### Evidência 11 — Nginx web page
-![Nginx web page](evidence/11-nginx-web-page.png)
+#### Evidence 11 — Public Nginx web page
+![Public Nginx web page](evidence/11-nginx-web-page.png)
 
-#### Evidência 12 — Public HTTP test
+#### Evidence 12 — Public HTTP test
 ![Public HTTP test](evidence/12-public-http-test.png)
 
 ### Backup and IAM
 
-#### Evidência 13 — Backup file created
-![Backup file created](evidence/13-backup-file-created.png)
+#### Evidence 13 — Backup archive created
+![Backup archive created](evidence/13-backup-file-created.png)
 
-#### Evidência 14 — Storage bucket created
-![Storage bucket created](evidence/14-storage-bucket-created.png)
+#### Evidence 14 — Cloud Storage bucket created
+![Cloud Storage bucket created](evidence/14-storage-bucket-created.png)
 
-#### Evidência 15 — Service Account created
+#### Evidence 15 — Service Account created
 ![Service Account created](evidence/15-service-account-created.png)
 
-#### Evidência 16 — VM Service Account
-![VM Service Account](evidence/16-vm-service-account.png)
+#### Evidence 16 — Service Account attached to VM
+![Service Account attached to VM](evidence/16-vm-service-account.png)
 
-#### Evidência 17 — Backup uploaded to Cloud Storage
+#### Evidence 17 — Backup uploaded to Cloud Storage
 ![Backup uploaded to Cloud Storage](evidence/17-backup-uploaded-to-storage.png)
 
 ### Monitoring and logging
 
-#### Evidência 18 — Monitoring dashboard
+#### Evidence 18 — Monitoring dashboard
 ![Monitoring dashboard](evidence/18-monitoring-dashboard.png)
 
-#### Evidência 19 — CPU alert policy
+#### Evidence 19 — CPU alert policy
 ![CPU alert policy](evidence/19-cpu-alert-policy.png)
 
-#### Evidência 20 — Cloud Logging
+#### Evidence 20 — Cloud Logging
 ![Cloud Logging](evidence/20-cloud-logging.png)
 
 ## Repository structure
@@ -188,46 +207,48 @@ gcp-cloud-infrastructure-lab/
 │   ├── security.md
 │   └── troubleshooting.md
 ├── evidence/
+│   ├── 02-project-created.png
+│   ├── ...
+│   ├── 20-cloud-logging.png
 │   └── README.md
 └── scripts/
     └── backup.sh
 ```
 
-## Deployment commands
+## Reproducing the lab
 
-The complete command sequence is documented in [`docs/deployment.md`](docs/deployment.md).
+The command sequence used in the project is documented in [`docs/deployment.md`](docs/deployment.md).
 
 ## Skills demonstrated
 
 - Google Cloud Platform
 - Compute Engine
-- VPC networking
+- Custom VPC networking
 - Subnets and CIDR planning
 - Firewall rules
 - Linux administration
 - Nginx
-- IAM
-- Service Accounts
+- IAM and Service Accounts
 - Cloud Storage
 - Backup operations
 - Cloud Monitoring
 - Alerting
 - Cloud Logging
 - Troubleshooting
-- Cost awareness
+- Cost-aware infrastructure design
 
 ## Roadmap
 
-- [x] V1 - Core infrastructure
+- [x] V1 — Core infrastructure
 - [x] Custom VPC and subnet
 - [x] Compute Engine + Nginx
 - [x] Cloud Storage backup
 - [x] IAM / Service Account
 - [x] Monitoring and Logging
-- [ ] V2 - Terraform
-- [ ] V3 - High availability and Load Balancer
-- [ ] V4 - Docker and Artifact Registry
-- [ ] V5 - GKE and CI/CD
+- [ ] V2 — Terraform
+- [ ] V3 — High availability and Load Balancer
+- [ ] V4 — Docker and Artifact Registry
+- [ ] V5 — GKE and CI/CD
 
 ## Author
 
