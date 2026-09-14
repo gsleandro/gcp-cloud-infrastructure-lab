@@ -1,5 +1,9 @@
 # GCP Cloud Infrastructure Lab
 
+![Google Cloud](https://img.shields.io/badge/Google%20Cloud-Infrastructure-4285F4?style=flat-square&logo=googlecloud&logoColor=white)
+![Linux](https://img.shields.io/badge/Linux-Ubuntu-E95420?style=flat-square&logo=ubuntu&logoColor=white)
+![Status](https://img.shields.io/badge/status-V1%20complete-16A34A?style=flat-square)
+
 Hands-on Google Cloud infrastructure project focused on **networking, Compute Engine, Linux, IAM, Cloud Storage, monitoring, logging and backup operations**.
 
 The lab simulates a small cloud environment deployed from scratch with a custom VPC, an Ubuntu VM running Nginx, controlled network access, a dedicated workload identity, backups to Cloud Storage and basic observability.
@@ -23,36 +27,13 @@ The lab simulates a small cloud environment deployed from scratch with a custom 
 
 ## Architecture
 
-```text
-                              INTERNET
-                                 |
-                           HTTP TCP/80
-                                 |
-                                 v
-                    +-------------------------+
-                    |     Compute Engine      |
-                    |      cloud-lab-vm       |
-                    |        e2-micro         |
-                    |    Ubuntu 24.04 LTS     |
-                    |         Nginx           |
-                    +-----------+-------------+
-                                |
-                     cloud-lab-vpc / subnet
-                        10.10.10.0/24
-                                |
-                +---------------+----------------+
-                |                                |
-                v                                v
-       Cloud Monitoring                    Cloud Logging
-          + Alerting
-
-VM attached identity:
-cloud-lab-backup Service Account
-                |
-                | IAM-authorized API access
-                v
-          Cloud Storage bucket
-              backups/
+```mermaid
+flowchart TB
+    I[Internet] -->|HTTP TCP/80| VM[Compute Engine: Ubuntu + Nginx]
+    VM --> VPC[Custom VPC: 10.10.10.0/24]
+    VM --> MON[Cloud Monitoring + Alerting]
+    VM --> LOG[Cloud Logging]
+    VM -->|Service Account| GCS[Cloud Storage: backups]
 ```
 
 > Cloud Storage is accessed through Google Cloud APIs using the VM's attached Service Account. It is not mounted as part of the VPC.
